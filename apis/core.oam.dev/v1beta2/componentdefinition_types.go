@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-package v1beta1
+package v1beta2
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,6 +27,12 @@ import (
 
 // ComponentDefinitionSpec defines the desired state of ComponentDefinition
 type ComponentDefinitionSpec struct {
+	Versions []ComponentDefinitionSpecTest `json:"versions"`
+}
+
+type ComponentDefinitionSpecTest struct {
+	Version string `json:"version"`
+
 	// Workload is a workload type descriptor
 	Workload common.WorkloadTypeDescriptor `json:"workload"`
 
@@ -69,7 +75,7 @@ type ComponentDefinitionStatus struct {
 }
 
 // +kubebuilder:object:root=true
-
+// +kubebuilder:storageversion
 // ComponentDefinition is the Schema for the componentdefinitions API
 // +kubebuilder:resource:scope=Namespaced,categories={oam},shortName=comp
 // +kubebuilder:subresource:status

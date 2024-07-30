@@ -67,7 +67,7 @@ type CoreOptions struct {
 func NewCoreOptions() *CoreOptions {
 	s := &CoreOptions{
 		UseWebhook:              false,
-		CertDir:                 "/k8s-webhook-server/serving-certs",
+		CertDir:                 "/tmp/k8s-webhook-server/serving-certs",
 		WebhookPort:             9443,
 		MetricsAddr:             ":8080",
 		EnableLeaderElection:    false,

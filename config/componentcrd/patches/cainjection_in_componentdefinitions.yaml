@@ -2,4 +2,6 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: vela-system/kubevela-vela-core-root-cert
   name: componentdefinitions.core.oam.dev

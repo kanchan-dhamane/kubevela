@@ -22,9 +22,15 @@ func (src *ComponentDefinition) ConvertTo(dstRaw conversion.Hub) error {
 	// if src.APIVersion == dst.APIVersion {
 	// 	return nil
 	// }
-	_, err := UnmarshalData(src, dst)
+	restored := &v1beta2.ComponentDefinition{}
+	ok, err := UnmarshalData(src, restored)
 	if err != nil {
 		return err
+	}
+	if ok {
+		dst.ObjectMeta = src.ObjectMeta
+		dst.Spec.Versions = restored.Spec.Versions
+		return nil
 	}
 
 	ComponentDefinitionlog.Info("Convert to v1beta2--- ----------------")
@@ -52,10 +58,7 @@ func (dst *ComponentDefinition) ConvertFrom(srcRaw conversion.Hub) error {
 	// ComponentDefinitionlog.Info("Source:")
 	// ComponentDefinitionlog.Info(src)
 
-	if len(src.Spec.Versions) >= 1 {
-		// ComponentDefinitionlog.Info("Available versions: %v", src.Spec.Versions)
-	}
-
+	dst.ObjectMeta = src.ObjectMeta
 	if err := MarshalData(src, dst); err != nil {
 		return nil
 	}
@@ -67,7 +70,6 @@ func (dst *ComponentDefinition) ConvertFrom(srcRaw conversion.Hub) error {
 	componentDefinitionSpec.Schematic = src.Spec.Versions[0].Schematic
 	componentDefinitionSpec.Extension = src.Spec.Versions[0].Extension
 	dst.Spec = *componentDefinitionSpec
-	dst.ObjectMeta = src.ObjectMeta
 
 	return nil
 }
@@ -98,6 +100,7 @@ func MarshalData(src metav1.Object, dst metav1.Object) error {
 	ComponentDefinitionlog.Info("Got past marshalling - 2")
 	annotations[DataAnnotation] = string(data)
 	dst.SetAnnotations(annotations)
+	// ComponentDefinitionlog.Info("annotation %v", dst.GetAnnotations())
 	return nil
 }
 

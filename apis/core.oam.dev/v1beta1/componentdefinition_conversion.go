@@ -62,19 +62,20 @@ func (dst *ComponentDefinition) ConvertFrom(srcRaw conversion.Hub) error {
 	if err := MarshalData(src, dst); err != nil {
 		return nil
 	}
+	latestVersion := src.Spec.Versions[len(src.Spec.Versions)-1]
 	componentDefinitionSpec := &ComponentDefinitionSpec{}
-	componentDefinitionSpec.Workload = src.Spec.Versions[0].Workload
-	componentDefinitionSpec.ChildResourceKinds = src.Spec.Versions[0].ChildResourceKinds
-	componentDefinitionSpec.RevisionLabel = src.Spec.Versions[0].RevisionLabel
-	componentDefinitionSpec.Status = src.Spec.Versions[0].Status
-	componentDefinitionSpec.Schematic = src.Spec.Versions[0].Schematic
-	componentDefinitionSpec.Extension = src.Spec.Versions[0].Extension
+	componentDefinitionSpec.Workload = latestVersion.Workload
+	componentDefinitionSpec.ChildResourceKinds = latestVersion.ChildResourceKinds
+	componentDefinitionSpec.RevisionLabel = latestVersion.RevisionLabel
+	componentDefinitionSpec.Status = latestVersion.Status
+	componentDefinitionSpec.Schematic = latestVersion.Schematic
+	componentDefinitionSpec.Extension = latestVersion.Extension
 	dst.Spec = *componentDefinitionSpec
 
 	return nil
 }
 
-const DataAnnotation = "kd-is-an-idiot"
+const DataAnnotation = "definition.oam.dev/conversion-data"
 
 // MarshalData stores the source object as json data in the destination object annotations map.
 // It ignores the metadata of the source object.

@@ -71,6 +71,7 @@ type ComponentDefinitionStatus struct {
 // +kubebuilder:object:root=true
 
 // ComponentDefinition is the Schema for the componentdefinitions API
+// +kubebuilder:storageversion
 // +kubebuilder:resource:scope=Namespaced,categories={oam},shortName=comp
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="WORKLOAD-KIND",type=string,JSONPath=".spec.workload.definition.kind"

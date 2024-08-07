@@ -40,7 +40,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"github.com/oam-dev/kubevela/apis/core.oam.dev/v1beta1"
-	"github.com/oam-dev/kubevela/apis/core.oam.dev/v1beta2"
 	"github.com/oam-dev/kubevela/apis/types"
 	"github.com/oam-dev/kubevela/cmd/core/app/hooks"
 	"github.com/oam-dev/kubevela/cmd/core/app/options"
@@ -160,7 +159,7 @@ func run(ctx context.Context, s *options.CoreOptions) error {
 		return err
 	}
 
-	if err = (&v1beta2.ComponentDefinition{}).SetupWebhookWithManager(mgr); err != nil {
+	if err = (&v1beta1.ComponentDefinition{}).SetupWebhookWithManager(mgr); err != nil {
 		klog.Error(err, "unable to create webhook", "webhook", "Captain")
 		return err
 	}

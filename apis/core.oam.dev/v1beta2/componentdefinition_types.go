@@ -75,7 +75,6 @@ type ComponentDefinitionStatus struct {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 // ComponentDefinition is the Schema for the componentdefinitions API
 // +kubebuilder:resource:scope=Namespaced,categories={oam},shortName=comp
 // +kubebuilder:subresource:status

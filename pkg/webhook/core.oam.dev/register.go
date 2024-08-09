@@ -17,9 +17,10 @@ limitations under the License.
 package core_oam_dev
 
 import (
+	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/conversion"
 
+	"github.com/oam-dev/kubevela/apis/core.oam.dev/v1beta1"
 	controller "github.com/oam-dev/kubevela/pkg/controller/core.oam.dev"
 	"github.com/oam-dev/kubevela/pkg/webhook/core.oam.dev/v1beta1/application"
 	"github.com/oam-dev/kubevela/pkg/webhook/core.oam.dev/v1beta1/componentdefinition"
@@ -35,6 +36,8 @@ func Register(mgr manager.Manager, args controller.Args) {
 	componentdefinition.RegisterValidatingHandler(mgr)
 	traitdefinition.RegisterValidatingHandler(mgr, args)
 	policydefinition.RegisterValidatingHandler(mgr)
-	server := mgr.GetWebhookServer()
-	server.Register("/convertcrd", &conversion.Webhook{})
+
+	if err := (&v1beta1.ComponentDefinition{}).SetupWebhookWithManager(mgr); err != nil {
+		klog.Error(err, "unable to create conversion webhook", "webhook")
+	}
 }

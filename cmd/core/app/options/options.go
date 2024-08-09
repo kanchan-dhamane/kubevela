@@ -66,7 +66,7 @@ type CoreOptions struct {
 // NewCoreOptions creates a new NewVelaCoreOptions object with default parameters
 func NewCoreOptions() *CoreOptions {
 	s := &CoreOptions{
-		UseWebhook:              false,
+		UseWebhook:              true,
 		CertDir:                 "/tmp/k8s-webhook-server/serving-certs",
 		WebhookPort:             9443,
 		MetricsAddr:             ":8080",

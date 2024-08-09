@@ -37,7 +37,7 @@ spec:
             - --secret-name={{ template "kubevela.fullname" . }}-admission
             - --patch-failure-policy={{ .Values.admissionWebhooks.failurePolicy }}
             {{- if .Values.admissionWebhooks.appConversion.enabled }}
-            - --crds={"name":"applications.core.oam.dev","conversion":{"strategy":"Webhook","webhook":{"clientConfig":{"service":{"name":"vela-core-webhook","namespace":"vela-system","path":"/convertcrd","port":443}},"conversionReviewVersions":["v1beta1","v1alpha2"]}}}
+            - --crds={"name":"applications.core.oam.dev","conversion":{"strategy":"Webhook","webhook":{"clientConfig":{"service":{"name":"vela-core-webhook","namespace":"vela-system","path":"/convert","port":443}},"conversionReviewVersions":["v1beta1","v1alpha2"]}}}
             {{- end }}
       restartPolicy: OnFailure
       serviceAccountName: {{ template "kubevela.fullname" . }}-admission

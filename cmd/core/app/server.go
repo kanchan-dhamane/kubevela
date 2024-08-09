@@ -159,11 +159,6 @@ func run(ctx context.Context, s *options.CoreOptions) error {
 		return err
 	}
 
-	if err = (&v1beta1.ComponentDefinition{}).SetupWebhookWithManager(mgr); err != nil {
-		klog.Error(err, "unable to create webhook", "webhook", "Captain")
-		return err
-	}
-
 	if err := registerHealthChecks(mgr); err != nil {
 		klog.ErrorS(err, "Unable to register ready/health checks")
 		return err

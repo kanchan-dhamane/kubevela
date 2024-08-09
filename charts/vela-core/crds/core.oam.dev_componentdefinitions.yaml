@@ -10,11 +10,7 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        service:
-          name: vela-core-webhook
-          namespace: vela-system
-          path: /mutate-core-oam-dev-v1beta2-componentdefinition
-          port: 443
+        url: "https://kd.localhost:9443/convert"
       conversionReviewVersions:
       - v1beta1
       - v1beta2

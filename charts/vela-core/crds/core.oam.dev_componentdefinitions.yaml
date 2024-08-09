@@ -13,7 +13,7 @@ spec:
         service:
           name: vela-core-webhook
           namespace: vela-system
-          path: /mutate-core-oam-dev-v1beta2-componentdefinition
+          path: /convert
           port: 443
       conversionReviewVersions:
       - v1beta1

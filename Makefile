@@ -106,10 +106,7 @@ manager:
 manifests: installcue kustomize
 	go generate $(foreach t,pkg apis,./$(t)/...)
 	# TODO(yangsoon): kustomize will merge all CRD into a whole file, it may not work if we want patch more than one CRD in this way
-	$(KUSTOMIZE) build config/crd/ -o config/crd/base/core.oam.dev_applications.yaml
-	cp -r config/crd/base/* config/componentcrd/base/
-	$(KUSTOMIZE) build config/componentcrd/ -o config/componentcrd/base/core.oam.dev_componentdefinitions.yaml
-	mv config/componentcrd/base/core.oam.dev_componentdefinitions.yaml config/crd/base/
+	$(KUSTOMIZE) build config/crd/ -o config/crd/base/
 	./hack/crd/cleanup.sh
 	go run ./hack/crd/dispatch/dispatch.go config/crd/base charts/vela-core/crds
 	rm -f config/crd/base/*

@@ -5,3 +5,4 @@ metadata:
   annotations:
     cert-manager.io/inject-ca-from: vela-system/kubevela-vela-core-root-cert
   name: componentdefinitions.core.oam.dev
+  namespace: vela-system

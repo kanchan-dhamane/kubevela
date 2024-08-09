@@ -96,6 +96,10 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 				return ctrl.Result{}, client.IgnoreNotFound(err)
 			}
 
+			revNum, err := strconv.ParseInt(version.Version, 10, 64)
+			if componentDefinition.Status.LatestRevision != nil && componentDefinition.Status.LatestRevision.Revision >= revNum {
+				continue
+			}
 			newDef := new(v1beta1.ComponentDefinition)
 			componentDefinition.DeepCopyInto(newDef)
 			newDef.Spec.Workload = version.Workload
@@ -107,7 +111,6 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			newDef.Spec.Extension = version.Extension
 
 			// componentDefinitionList = append(componentDefinitionList, *def)
-			revNum, err := strconv.ParseInt(version.Version, 10, 64)
 
 			if err != nil {
 				klog.InfoS("error in converting string to int64 -----------", err)
@@ -123,7 +126,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 			def := utils.NewCapabilityComponentDef(&componentDefinition)
 			// Store the parameter of componentDefinition to configMap
-			cmName, err := def.StoreOpenAPISchema(ctx, r.Client, req.Namespace, req.Name, def.Name)
+			cmName, err := def.StoreOpenAPISchema(ctx, r.Client, req.Namespace, req.Name, defRev.Name)
 			if err != nil {
 				klog.InfoS("Could not store capability in ConfigMap", "err", err)
 				r.record.Event(&(componentDefinition), event.Warning("Could not store capability in ConfigMap", err))
@@ -162,7 +165,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 		def := utils.NewCapabilityComponentDef(&componentDefinition)
 		// Store the parameter of componentDefinition to configMap
-		cmName, err := def.StoreOpenAPISchema(ctx, r.Client, req.Namespace, req.Name, def.Name)
+		cmName, err := def.StoreOpenAPISchema(ctx, r.Client, req.Namespace, req.Name, defRev.Name)
 		if err != nil {
 			klog.InfoS("Could not store capability in ConfigMap", "err", err)
 			r.record.Event(&(componentDefinition), event.Warning("Could not store capability in ConfigMap", err))

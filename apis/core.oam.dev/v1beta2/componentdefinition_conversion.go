@@ -1,12 +1,11 @@
 package v1beta2
 
 import (
-	"sigs.k8s.io/controller-runtime/pkg/conversion"
-
 	"encoding/json"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/conversion"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/oam-dev/kubevela/apis/core.oam.dev/v1beta1"
@@ -14,7 +13,7 @@ import (
 
 var ComponentDefinitionlog = logf.Log.WithName("ComponentDefinition-resource")
 
-// ConvertTo translates v1lbeta2 to v1beta1
+// ConvertTo translates Spoke to the Hub version (v1lbeta2 to v1beta1)
 func (src *ComponentDefinition) ConvertTo(dstRaw conversion.Hub) error {
 	ComponentDefinitionlog.Info("ConvertTo  v1lbeta2 to v1beta1--- ------------------")
 	dst := dstRaw.(*v1beta1.ComponentDefinition)
@@ -34,7 +33,7 @@ func (src *ComponentDefinition) ConvertTo(dstRaw conversion.Hub) error {
 	return nil
 }
 
-// convert v1beta1 to v1beta2
+// ConvertFrom translates the Hub to this Spoke version (v1beta1 to v1beta2)
 func (dst *ComponentDefinition) ConvertFrom(srcRaw conversion.Hub) error {
 	ComponentDefinitionlog.Info("ConvertFrom  v1beta1 to v1beta2--- ------------------")
 	src := srcRaw.(*v1beta1.ComponentDefinition)

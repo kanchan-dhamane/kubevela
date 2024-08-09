@@ -16,12 +16,9 @@ func (r *ComponentDefinition) SetupWebhookWithManager(mgr ctrl.Manager) error {
 }
 
 var _ webhook.Defaulter = &ComponentDefinition{}
-
 var _ webhook.Validator = &ComponentDefinition{}
 
-func (r *ComponentDefinition) Default() {
-
-}
+func (r *ComponentDefinition) Default() {}
 
 func (r *ComponentDefinition) ValidateCreate() error {
 	ComponentDefinitionlog.Info("validate create", "name", r.Name)

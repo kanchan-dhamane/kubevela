@@ -111,7 +111,7 @@ This versioning scheme, although convenient, has the following issues:
 - Since, there are more than one ways to reference a Component (`NamedDefinitionRevision` or `DefinitionRevision`), it proves difficult to maintain version consistency across clusters.
 - Each change in the ComponentDefintion Spec creates a new DefinitionRevision only if the annotation `definitionrevision.oam.dev/name` is not present at all. If there is change in the ComponentDefintion Spec when the annotation  `definitionrevision.oam.dev/name` is present and not updated, the DefinitionRevision is updated in place. This behavior adds to the inconsistency.
 
-#### Reference: 
+#### Reference:
 
 https://kubevela.io/docs/platform-engineers/x-def-version/
 
@@ -139,10 +139,70 @@ This proposal targets the following major changes:
 - Kubevela Application users can refer to a particular version of a ComponentDefinition like `component-name@component-version`. The `version` must be a valid Semantic version without the prefix `v` for example, `1.1.0`, `1.2.0-rc.0`.
 
 #### ComponentDefinition CRD
-![comp-def-crd](./comp-def-crd.png)
+```
+    apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        cert-manager.io/inject-ca-from: vela-system/kubevela-vela-core-root-cert
+        controller-gen.kubebuilder.io/version: v0.11.4
+      name: componentdefinitions.core.oam.dev
+    spec:
+      conversion:
+        strategy: Webhook
+        webhook:
+          clientConfig:
+            service:
+              name: vela-core-webhook
+              namespace: vela-system
+              path: /convert
+              port: 443
+          conversionReviewVersions:
+          - v1beta1
+          - v2alpha1
+      group: core.oam.dev
+      names: ...
+      scope: Namespaced
+      versions:
+      - additionalPrinterColumns:
+        - jsonPath: .spec.workload.definition.kind ...
+        - jsonPath: .metadata.annotations.definition\.oam\.dev/ description ...
+        name: v1beta1
+        schema: ...
+        served: true
+        storage: true
+        subresources:
+          status: {}
+      - additionalPrinterColumns:
+        - jsonPath: .spec.workload.definition.kind ...
+        - jsonPath: .metadata.annotations.definition\.oam\.dev/description ...
+        name: v2alpha1
+        schema: ...
+        served: true
+        storage: false
+        subresources:
+          status: {}
+
+```
 
 #### ComponentDefinition v2Alpha1 Object
-![comp-def-instance](./comp-def-instance.png)
+
+```
+    apiVersion: core.oam.dev/v2alpha1
+    kind: ComponentDefinition
+    metadata:
+      annotations: {}
+      name: my-component
+      namespace: vela-system
+    spec:
+      versions:
+      - version: "2"
+        schematic: ...
+        workload: ...
+      - version: "3.4"
+        schematic: ...
+        workload: ...
+```
 
 
 The Application will then have the ability to refer to the version when using a
@@ -155,7 +215,7 @@ Definition like this
     spec:
         components:
             - name: backend
-              type: cloud-native-postgres-beta2@v3
+              type: my-component@v3.4
 ```
 
 ### Implementation Details
@@ -184,8 +244,8 @@ version of a Component is available and the Application is eligible (based on
 the version specificity) to be upgraded.
 
 > **Proposal Notes:** We are intentionally not planning to add a flag like `auto-upgrade:
-> true|false` if one does not want to auto-upgrade their component. Application developers 
-> should always use specific Semantic versions in the Application spec to disable auto upgrades. 
+> true|false` if one does not want to auto-upgrade their component. Application developers
+> should always use specific Semantic versions in the Application spec to disable auto upgrades.
 > This is also consistent
 > with existing behavior where we always use the latest version of the
 > Definition when the Application reconciles. We are just providing a way to opt
@@ -195,7 +255,7 @@ the version specificity) to be upgraded.
 
 > **For Definition Maintainers:** Ideally the upgrades to Definitions
 > should be backward compatible for a given Major version. Updates to
-> Definitions should never force the Application spec to change. If a 
+> Definitions should never force the Application spec to change. If a
 > Component is changing something significant, it should be a new Definition.
 
 ### How to handle existing components
@@ -222,10 +282,10 @@ the version specificity) to be upgraded.
 - Add a new CRD version.
   - `spec.versions` is an array of all available/supported Component versions.
   - `status` for the ComponentDefintion will be modified to store the version metadata.
-  
+
 #### DefintionRevision:
 - We are planning to keep the syntax for referring to a version of a Component in an Application.
-- `v2Alpha1` Components will only be referable by the `DefinitionRevision` version and not the Revision. The Component version will continue to be appended to the `DefinitionRevision` Name. 
+- `v2Alpha1` Components will only be referable by the `DefinitionRevision` version and not the Revision. The Component version will continue to be appended to the `DefinitionRevision` Name.
 
 #### Application:
 - Update the Component version parsing for `v2Alpha1` Components, to allow for auto upgrades.

@@ -22,7 +22,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/crossplane/crossplane-runtime/pkg/event"
 	ctrlrec "github.com/kubevela/pkg/controller/reconciler"
@@ -39,6 +38,7 @@ import (
 	"github.com/oam-dev/kubevela/apis/core.oam.dev/v1beta2"
 	oamctrl "github.com/oam-dev/kubevela/pkg/controller/core.oam.dev"
 	coredef "github.com/oam-dev/kubevela/pkg/controller/core.oam.dev/v1beta1/core"
+	"github.com/oam-dev/kubevela/pkg/oam"
 
 	"github.com/oam-dev/kubevela/pkg/controller/utils"
 	"github.com/oam-dev/kubevela/pkg/oam/util"
@@ -93,12 +93,9 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 				return ctrl.Result{}, client.IgnoreNotFound(err)
 			}
 
-			revNum, err := strconv.ParseInt(version.Version, 10, 64)
-			if componentDefinition.Status.LatestRevision != nil && componentDefinition.Status.LatestRevision.Revision >= revNum {
-				continue
-			}
 			newDef := new(v1beta1.ComponentDefinition)
 			componentDefinition.DeepCopyInto(newDef)
+			newDef.ObjectMeta.Annotations[oam.AnnotationDefinitionVersion] = version.Version
 			newDef.Spec.Workload = version.Workload
 			newDef.Spec.ChildResourceKinds = version.ChildResourceKinds
 			newDef.Spec.RevisionLabel = version.RevisionLabel
@@ -107,46 +104,45 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			newDef.Spec.Schematic = version.Schematic
 			newDef.Spec.Extension = version.Extension
 
-			// componentDefinitionList = append(componentDefinitionList, *def)
-
-			if err != nil {
-				klog.InfoS("error in converting string to int64 -----------", err)
-			}
-			// revNum++
-			defRev, result, err := coredef.ReconcileDefinitionRevisionV2(ctx, revNum, r.Client, r.record, newDef, r.defRevLimit, func(revision *common.Revision) error {
+			defRev, result, err := coredef.ReconcileDefinitionRevision(ctx, r.Client, r.record, newDef, r.defRevLimit, func(revision *common.Revision) error {
 				componentDefinition.Status.LatestRevision = revision
 				return r.UpdateStatus(ctx, &componentDefinition)
 			})
+			if result != nil {
+				return *result, err
+			}
+			if err != nil {
+				return ctrl.Result{}, err
+			}
 			klog.InfoS("defRev is ----------- ", defRev)
 			klog.InfoS("result is ----------- ", result)
 			klog.InfoS("error is ----------- ", err)
 
 			def := utils.NewCapabilityComponentDef(&componentDefinition)
 			// Store the parameter of componentDefinition to configMap
-			// cmName, err := def.StoreOpenAPISchema(ctx, r.Client, req.Namespace, req.Name, defRev.Name)
-			// cmName, err := def.StoreOpenAPISchema(ctx, r.Client, req.Namespace, req.Name, defRev.Name)
+			cmName, err := def.StoreOpenAPISchema(ctx, r.Client, req.Namespace, req.Name, defRev.Name)
 			if err != nil {
 				klog.InfoS("Could not store capability in ConfigMap", "err", err)
 				r.record.Event(&(componentDefinition), event.Warning("Could not store capability in ConfigMap", err))
 				return ctrl.Result{}, util.PatchCondition(ctx, r, &(componentDefinition),
 					condition.ReconcileError(fmt.Errorf(util.ErrStoreCapabilityInConfigMap, def.Name, err)))
 			}
-		}
-		cmName := "component-schema-atmos-dynamodb-0"
-		if componentDefinition.Status.ConfigMapRef != cmName {
-			componentDefinition.Status.ConfigMapRef = cmName
-			// Override the conditions, which maybe include the error info.
-			componentDefinition.Status.Conditions = []condition.Condition{condition.ReconcileSuccess()}
+			if componentDefinition.Status.ConfigMapRef != cmName {
+				componentDefinition.Status.ConfigMapRef = cmName
+				// Override the conditions, which maybe include the error info.
+				componentDefinition.Status.Conditions = []condition.Condition{condition.ReconcileSuccess()}
 
-			if err := r.UpdateStatus(ctx, &componentDefinition); err != nil {
-				klog.InfoS("Could not update componentDefinition Status", "err", err)
-				r.record.Event(&componentDefinition, event.Warning("cannot update ComponentDefinition Status", err))
-				return ctrl.Result{}, util.PatchCondition(ctx, r, &componentDefinition,
-					condition.ReconcileError(fmt.Errorf(util.ErrUpdateComponentDefinition, componentDefinition.Name, err)))
+				if err := r.UpdateStatus(ctx, &componentDefinition); err != nil {
+					klog.InfoS("Could not update componentDefinition Status", "err", err)
+					r.record.Event(&componentDefinition, event.Warning("cannot update ComponentDefinition Status", err))
+					return ctrl.Result{}, util.PatchCondition(ctx, r, &componentDefinition,
+						condition.ReconcileError(fmt.Errorf(util.ErrUpdateComponentDefinition, componentDefinition.Name, err)))
+				}
+				klog.InfoS("Successfully updated the status.configMapRef of the ComponentDefinition", "componentDefinition",
+					klog.KRef(req.Namespace, req.Name), "status.configMapRef", cmName)
 			}
-			klog.InfoS("Successfully updated the status.configMapRef of the ComponentDefinition", "componentDefinition",
-				klog.KRef(req.Namespace, req.Name), "status.configMapRef", cmName)
 		}
+
 	} else {
 		defRev, result, err := coredef.ReconcileDefinitionRevision(ctx, r.Client, r.record, &componentDefinition, r.defRevLimit, func(revision *common.Revision) error {
 			componentDefinition.Status.LatestRevision = revision

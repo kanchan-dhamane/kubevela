@@ -147,6 +147,10 @@ const (
 	// AnnotationDefinitionRevisionName is used to specify the name of DefinitionRevision in component/trait definition
 	AnnotationDefinitionRevisionName = "definitionrevision.oam.dev/name"
 
+	AnnotationDefinitionVersion = "definitionrevision.oam.dev/version"
+
+	// AnnotationDefinitionRevisionVersion = "definitionrevision.oam.dev/version"
+
 	// AnnotationLastAppliedConfiguration is kubectl annotations for 3-way merge
 	AnnotationLastAppliedConfiguration = "kubectl.kubernetes.io/last-applied-configuration"
 

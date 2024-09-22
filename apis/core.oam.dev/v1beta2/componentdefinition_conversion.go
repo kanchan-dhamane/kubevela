@@ -23,6 +23,7 @@ func (src *ComponentDefinition) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	latestVersion := src.Spec.Versions[len(src.Spec.Versions)-1]
+	dst.Labels = src.Labels
 	dst.Spec.Workload = latestVersion.Workload
 	dst.Spec.ChildResourceKinds = latestVersion.ChildResourceKinds
 	dst.Spec.RevisionLabel = latestVersion.RevisionLabel
@@ -60,7 +61,7 @@ func (dst *ComponentDefinition) ConvertFrom(srcRaw conversion.Hub) error {
 	componentDefinitionSpecTest.Schematic = src.Spec.Schematic
 	componentDefinitionSpecTest.Extension = src.Spec.Extension
 	dst.Spec.Versions = []ComponentDefinitionSpecTest{*componentDefinitionSpecTest}
-
+	dst.Labels = src.Labels
 	return nil
 }
 

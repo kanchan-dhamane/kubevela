@@ -22,6 +22,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Masterminds/semver"
 	"github.com/crossplane/crossplane-runtime/pkg/event"
 	"github.com/pkg/errors"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
@@ -49,6 +50,16 @@ func GenerateDefinitionRevision(ctx context.Context, cli client.Client, def runt
 		return nil, false, err
 	}
 	if isNamedRev {
+		return generateNamedDefinitionRevision(ctx, cli, def, defRevNamespacedName)
+	}
+
+	isVersionedRev, defRevNamespacedName, err := isVersionedRevision(def)
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	if isVersionedRev {
 		return generateNamedDefinitionRevision(ctx, cli, def, defRevNamespacedName)
 	}
 
@@ -83,6 +94,30 @@ func isNamedRevision(def runtime.Object) (bool, types.NamespacedName, error) {
 	defNs := unstructuredDef.GetNamespace()
 	defName := unstructuredDef.GetName()
 	defRevName := ConstructDefinitionRevisionName(defName, revisionName)
+	return true, types.NamespacedName{Name: defRevName, Namespace: defNs}, nil
+}
+
+func isVersionedRevision(def runtime.Object) (bool, types.NamespacedName, error) {
+	fmt.Println("in isVersionedRevision ------------------")
+	defMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(def)
+	if err != nil {
+		return false, types.NamespacedName{}, err
+	}
+	unstructuredDef := unstructured.Unstructured{
+		Object: defMap,
+	}
+	revisionName := unstructuredDef.GetAnnotations()[oam.AnnotationDefinitionVersion]
+	if len(revisionName) == 0 {
+		return false, types.NamespacedName{}, nil
+	}
+	semVersion, err := semver.NewVersion(revisionName)
+	if err != nil {
+		return true, types.NamespacedName{}, err
+	}
+	defNs := unstructuredDef.GetNamespace()
+	defName := unstructuredDef.GetName()
+	defRevName := ConstructDefinitionRevisionName(defName, semVersion.String())
+	fmt.Println(defRevName)
 	return true, types.NamespacedName{Name: defRevName, Namespace: defNs}, nil
 }
 

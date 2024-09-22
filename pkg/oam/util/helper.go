@@ -22,9 +22,11 @@ import (
 	"fmt"
 	"hash"
 	"hash/fnv"
+	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/Masterminds/semver"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
@@ -122,6 +124,13 @@ const (
 	XDefinitionNamespace
 )
 
+var DefinitionKindToNameLabel = map[common.DefinitionType]string{
+	common.ComponentType:    oam.LabelComponentDefinitionName,
+	common.TraitType:        oam.LabelTraitDefinitionName,
+	common.PolicyType:       oam.LabelPolicyDefinitionName,
+	common.WorkflowStepType: oam.LabelWorkflowStepDefinitionName,
+}
+
 // A ConditionedObject is an Object type with condition field
 type ConditionedObject interface {
 	client.Object
@@ -214,7 +223,11 @@ func GetDefinitionFromNamespace(ctx context.Context, cli client.Reader, definiti
 // GetCapabilityDefinition can get different versions of ComponentDefinition/TraitDefinition
 func GetCapabilityDefinition(ctx context.Context, cli client.Reader, definition client.Object,
 	definitionName string) error {
-	isLatestRevision, defRev, err := fetchDefinitionRev(ctx, cli, definitionName)
+	definitionType, err := getDefinitionType(definition)
+	if err != nil {
+		return err
+	}
+	isLatestRevision, defRev, err := fetchDefinitionRev(ctx, cli, definitionName, definitionType)
 	if err != nil {
 		return err
 	}
@@ -235,7 +248,24 @@ func GetCapabilityDefinition(ctx context.Context, cli client.Reader, definition 
 	return nil
 }
 
-func fetchDefinitionRev(ctx context.Context, cli client.Reader, definitionName string) (bool, *v1beta1.DefinitionRevision, error) {
+func getDefinitionType(definition client.Object) (common.DefinitionType, error) {
+	var definitionType common.DefinitionType
+	switch definition.(type) {
+	case *v1beta1.ComponentDefinition:
+		definitionType = common.ComponentType
+	case *v1beta1.TraitDefinition:
+		definitionType = common.TraitType
+	case *v1beta1.PolicyDefinition:
+		definitionType = common.PolicyType
+	case *v1beta1.WorkflowStepDefinition:
+		definitionType = common.WorkflowStepType
+	default:
+		return definitionType, fmt.Errorf("invalid definition")
+	}
+	return definitionType, nil
+}
+
+func fetchDefinitionRev(ctx context.Context, cli client.Reader, definitionName string, definitionType common.DefinitionType) (bool, *v1beta1.DefinitionRevision, error) {
 	// if the component's type doesn't contain '@' means user want to use the latest Definition.
 	if !strings.Contains(definitionName, "@") {
 		return true, nil, nil
@@ -245,11 +275,62 @@ func fetchDefinitionRev(ctx context.Context, cli client.Reader, definitionName s
 	if err != nil {
 		return false, nil, err
 	}
+
+	defName := strings.Split(definitionName, "@")[0]
+	latestRevisionName, err := getLatestDefinition(ctx, cli.(client.Client), defName, defRevName, definitionType)
+	if err != nil {
+		return false, nil, err
+	}
 	defRev := new(v1beta1.DefinitionRevision)
-	if err := GetDefinition(ctx, cli, defRev, defRevName); err != nil {
+
+	if err := GetDefinition(ctx, cli, defRev, latestRevisionName); err != nil {
 		return false, nil, err
 	}
 	return false, defRev, nil
+}
+
+func getLatestDefinition(ctx context.Context, c client.Client, defName, defRevName string, defType common.DefinitionType) (string, error) {
+	nameLabel := DefinitionKindToNameLabel[defType]
+	var defVersions []*semver.Version
+	var version string
+	ns := GetXDefinitionNamespaceWithCtx(ctx)
+	var listOptions []client.ListOption
+	listOptions = append(listOptions, client.InNamespace(ns))
+	listOptions = append(listOptions, client.MatchingLabels{
+		nameLabel: defName,
+	})
+
+	objs := v1beta1.DefinitionRevisionList{}
+	objs.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   v1beta1.Group,
+		Version: v1beta1.Version,
+		Kind:    v1beta1.DefinitionRevisionKind,
+	})
+
+	if err := c.List(ctx, &objs, listOptions...); err != nil {
+		return "", err
+	}
+	defRevisionNamePrefix := defRevName + "."
+	for _, dr := range objs.Items {
+		if defType != "" && defType != dr.Spec.DefinitionType {
+			continue
+		}
+		if dr.Name == defRevName {
+			return defRevName, nil
+		}
+		// Only give the revision that the user wants
+		if strings.HasPrefix(dr.Name, defRevisionNamePrefix) {
+			version = strings.Split(dr.Name, defName+"-")[1]
+			v, err := semver.NewVersion(version)
+			if err != nil {
+				return "", err
+			}
+			defVersions = append(defVersions, v)
+		}
+	}
+	sort.Sort(semver.Collection(defVersions))
+	defRevisionName := defName + "-" + defVersions[len(defVersions)-1].Original()
+	return defRevisionName, nil
 }
 
 // ConvertDefinitionRevName can help convert definition type defined in Application to DefinitionRevision Name

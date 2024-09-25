@@ -96,7 +96,7 @@ latest when no Component Revision is specified.
 >**WHEN** the Application is deployed\
 >**THEN** it uses Component A 1.2.2 and B 4.4.2
 
->**Variant:** Use the latest version for the part of the semVer that is not specified.\
+>**Variant:** Use the latest version for the part of the SemVer that is not specified.\
 >**AND** an Application composed of A 1.2 and B 4\
 >**WHEN** the Application is deployed\
 >**THEN** it uses Component A 1.2.3 and B 4.5.6
@@ -157,15 +157,15 @@ Alternatively, since DefinitionRevisions are maintained even if a **"named"** Re
 
 This versioning scheme, although convenient, has the following issues:
 
-- Applications which do not explicitly specify a target Revision of a ComponentDefintion, the "latest" applied revision of the ComponentDefinition is used. In scenarios where a cluster has to be replicated or re-created, this means that the sequence in which revisions of a ComponentDefinition are applied becomes important. Implicitly, this also means that the Component maintainers need to keep all Revisions of a ComponentDefinition in their deployment pipeline.\
+- Applications which do not explicitly specify a target Revision of a ComponentDefinition, the "latest" applied revision of the ComponentDefinition is used. In scenarios where a cluster has to be replicated or re-created, this means that the sequence in which revisions of a ComponentDefinition are applied becomes important. Implicitly, this also means that the Component maintainers need to keep all Revisions of a ComponentDefinition in their deployment pipeline.\
 If `definitionrevision.oam.dev/name` annotation is not added to ComponentDefinitions, even if the Applications are explicit about a Component Revision, there is currently no guarantee that the Application behaviour will be consistent across Environments/Clusters. For example, a `Dev` environment will typically have more churn in Revisions than a `Prod` one and a reference to Component Revision `v3` in an Application will not be the same in both environments.
 
 
 ### Auto Upgrade
-Kubevela utilises the annotation `app.oam.dev/autoUpdate` for automatic upgrade.
+KubeVela utilises the annotation `app.oam.dev/autoUpdate` for automatic upgrade.
 
 Application reconciliation behaviour when the `app.oam.dev/autoUpdate` annotation is specified in the Application: 
-- If a ComponentDefintion Revision is not specified, the Application will always use the latest available Revision.
+- If a ComponentDefinition Revision is not specified, the Application will always use the latest available Revision.
 - If a ComponentDefinition Revision is specified and a new Revision is released after the Application was created, the latest changes will not reflect in the Application.
 
 Note: This feature is not documented in KubeVela documentation.
@@ -182,8 +182,8 @@ Note: This feature is not documented in KubeVela documentation.
 
 The following 3 implementation pieces need to be considered to enable auto-upgrade behaviour based on semantic versioning:
 
-- Considering that there already exists a mechanism to specify a Revision of a ComponentDefintion, the following variations can be considered:\
-  - *Option 1*: Add an optional field `version` in the ComponentDefintion `spec` and use it to generate the ComponentDefinition Revisions.
+- Considering that there already exists a mechanism to specify a Revision of a ComponentDefinition, the following variations can be considered:\
+  - *Option 1*: Add an optional field `version` in the ComponentDefinition `spec` and use it to generate the ComponentDefinition Revisions.
   - *Option 2*: Add a new annotation `definitionrevision.oam.dev/version` as suggested [here](https://github.com/kubevela/kubevela/issues/6435#issuecomment-1892372596) and use it to generate the ComponentDefinition Revisions.
   - *Option 3*: Use the existing annotation `definitionrevision.oam.dev/name` and add support for specifying Semantic versions. This will break backward compatibility.
 
@@ -357,7 +357,7 @@ the version specificity) to be upgraded.
   - `status` for the Component will be modified to store the version's metadata.
 - New Component versions and Revisions will be required for all `spec` changes.
   
-#### DefintionRevision:
+#### DefinitionRevision:
 - We are planning to keep the syntax for referring to a version of a Component in an Application.
 - `v2beta1` Components will only be referable by the version and not the Revision. The Component version will continue to be appended to the `DefinitionRevision` Name.
 

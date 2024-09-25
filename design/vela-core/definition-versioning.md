@@ -25,7 +25,7 @@
     - [Notes/Considerations](#notesconsiderations)
     - [Summary of High Level Changes](#summary-of-high-level-changes)
       - [ComponentDefinition](#componentdefinition)
-      - [DefintionRevision:](#defintionrevision)
+      - [DefinitionRevision:](#definitionrevision)
       - [Application:](#application)
 <!-- /toc -->
 
@@ -95,46 +95,61 @@ latest when no Component Revision is specified.
 >**AND** an Application composed of A 1.2.2 and B 4.4.2\
 >**WHEN** the Application is deployed\
 >**THEN** it uses Component A 1.2.2 and B 4.4.2
-
+>
 >**Variant:** Use the latest version for the part of the SemVer that is not specified.\
 >**AND** an Application composed of A 1.2 and B 4\
 >**WHEN** the Application is deployed\
 >**THEN** it uses Component A 1.2.3 and B 4.5.6
 
-> Scenario 2: Behaviour when auto-upgrade is disabled 
+> Scenario 2: Behaviour when auto-upgrade is disabled \
 > **GIVEN** a component A with version 1.2.3\
 > **AND** an Application composed of A-1.2.3\
 > **IF** Auto-upgrade is disabled\
 > **WHEN** a new version of Component A (A-1.2.5) is released\
 > **THEN** the Application should continue to use A-1.2.3
 >
-> **Variant** Behaviour when auto-upgrade is disabled and exact version is unavailable.
+> **Variant** Behaviour when auto-upgrade is disabled and exact version is unavailable.\
 > **GIVEN** a component A with version 1.2.3\
 > **AND** a new Application composed of A-1.2.2\
 > **IF** Auto-upgrade is disabled\
 > **WHEN** the Application is applied\
 > **THEN** the Application deployment should fail.
-
-> Scenario 3: Behaviour when auto-upgrade is enabled
+>
+> **Variant** Behaviour when auto-upgrade is disabled and exact version is unavailable.\
 > **GIVEN** a component A with version 1.2.3\
-> **AND** an Application composed of A-1.2.3\
+> **AND** a new Application composed of A-1.2\
+> **IF** Auto-upgrade is disabled\
+> **WHEN** the Application is applied\
+> **THEN** the Application deployment should fail.
+
+> Scenario 3: Behaviour when auto-upgrade is enabled \
+> **GIVEN** a component A with version 1.2.3\
+> **AND** an Application composed of A-1.2\
 > **IF** Auto-upgrade is enabled\
-> **WHEN** a new version of Component A (A-1.2.5) is released\
+> **THEN** the Application should use A-1.2.3
+> **AND WHEN** a new version of Component A (A-1.2.5) is released\
 > **THEN** the Application should update to use A-1.2.5
 >
-> **Variant** Behaviour when auto-upgrade is enabled and exact version is unavailable
+> **Variant** Behaviour when auto-upgrade is enabled and exact version is unavailable \
 > **GIVEN** a component A with version 1.2.3\
 > **AND** a new Application composed of A-1.2.2\
 > **IF** Auto-upgrade is enabled\
 > **WHEN** the Application is applied\
+> **THEN** the Application deployment should fail.
+>
+> **Variant** Behaviour when auto-upgrade is enabled and exact version is unavailable \
+> **GIVEN** a component A with version 1.2.3\
+> **AND** a new Application composed of A-1.2\
+> **IF** Auto-upgrade is enabled\
+> **WHEN** the Application is applied\
 > **THEN** the Application deployment should use A-1.2.3.
 
-> Scenario 4:  Expectations of consistent versioning across Environments/Clusters.
+> Scenario 4:  Expectations of consistent versioning across Environments/Clusters. \
 > **GIVEN** a component A with versions 1.2.1|1.2.2|2.2.1\
 > **AND** an Application composed of A-1.2.2\
 > **IF** the Application needs to be deployed across Environments (Dev, Prod etc)\
 > **OR** the Application needs to be deployed in multiple clusters managed independently\
-> **WHEN** the Application  is deployed across Environments/Clusters
+> **WHEN** the Application  is deployed across Environments/Clusters \
 > **THEN** The Application should behave consistently. 
 
 ## Current Implementation

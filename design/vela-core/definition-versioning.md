@@ -76,10 +76,10 @@ latest when no Component Revision is specified.
 
 **BDD Acceptance Criteria**
 
->**GIVEN** a Component spec\
->**AND** a version field of the spec set to V\
+>**GIVEN** an updated ComponentDefinition Specification \
+>**AND** a version denoted by the ComponentDefinition is set to V\
 >**WHEN** the Component is applied to KubeVela\
->**THEN** it should be listed as one of the many versions in the DefinitionRevision list
+>**THEN** `V` should be listed as one of the many versions in the DefinitionRevision list
 
 **User Story: Application Component version specification**
 
@@ -97,6 +97,8 @@ latest when no Component Revision is specified.
 >**THEN** it uses Component A 1.2.2 and B 4.4.2
 >
 >**Variant:** Use the latest version for the part of the SemVer that is not specified.\
+>**GIVEN** component A latest version is 1.2.3
+>**AND** Component B latest version is 4.5.6
 >**AND** an Application composed of A 1.2 and B 4\
 >**WHEN** the Application is deployed\
 >**THEN** it uses Component A 1.2.3 and B 4.5.6
@@ -150,7 +152,7 @@ latest when no Component Revision is specified.
 > **IF** the Application needs to be deployed across Environments (Dev, Prod etc)\
 > **OR** the Application needs to be deployed in multiple clusters managed independently\
 > **WHEN** the Application  is deployed across Environments/Clusters \
-> **THEN** The Application should behave consistently. 
+> **THEN** The Application should behave consistently, as in all the clusters A-1.2.2 map to the same ComponentDefinition changes.
 
 ## Current Implementation
 

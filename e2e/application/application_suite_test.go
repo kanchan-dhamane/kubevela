@@ -21,9 +21,40 @@ import (
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
+	k8s "github.com/gruntwork-io/terratest/modules/k8s"
+
+	"github.com/gruntwork-io/terratest/modules/logger"
+	"github.com/sirupsen/logrus"
 )
 
 func TestApplication(t *testing.T) {
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, "Application Suite")
+}
+
+var _ = ginkgo.BeforeSuite(func() {
+	logrus.Debug("Deploy the componentdefinition")
+	deployComponentDefition()
+
+})
+
+var _ = ginkgo.AfterSuite(func() {
+	deleteComponentDefintion()
+	logrus.Debug("delete the componentdefinition")
+})
+
+func deployComponentDefition() {
+	logrus.Debug("Deploying jspolicies")
+	k8sOptions := &k8s.KubectlOptions{Logger: logger.Discard}
+	_err := k8s.KubectlApplyE(ginkgo.GinkgoT(), k8sOptions, "./componentdefinitions")
+	gomega.Expect(_err).NotTo(gomega.HaveOccurred())
+	logrus.Debug("Deployed jspolicies")
+}
+
+func deleteComponentDefintion() {
+	logrus.Debug("Deleting jspolicies")
+	k8sOptions := &k8s.KubectlOptions{Logger: logger.Discard}
+	_err := k8s.KubectlDeleteE(ginkgo.GinkgoT(), k8sOptions, "./componentdefinitions")
+	gomega.Expect(_err).NotTo(gomega.HaveOccurred())
+	logrus.Debug("Deleted jspolicies")
 }

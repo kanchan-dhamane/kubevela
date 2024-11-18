@@ -137,6 +137,7 @@ func (d *Option) ValidateApp(ctx context.Context, filename string) error {
 // resources but not persist them into cluster.
 func (d *Option) ExecuteDryRun(ctx context.Context, application *v1beta1.Application) ([]*types.ComponentManifest, []*unstructured.Unstructured, error) {
 	app := application.DeepCopy()
+	d.Parser.FunctionalCtx = appcontext.CreateFunctionalContext(app)
 	if app.Namespace != "" {
 		ctx = oamutil.SetNamespaceInCtx(ctx, app.Namespace)
 	}

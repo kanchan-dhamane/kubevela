@@ -241,7 +241,7 @@ var _ = Describe("Test PolicyDefinition validating handler", func() {
 			}
 			resp := handler.Handle(context.TODO(), req)
 			Expect(resp.Allowed).Should(BeFalse())
-			Expect(string(resp.Result.Reason)).Should(ContainSubstring("Only one should be present"))
+			Expect(string(resp.Result.Reason)).Should(ContainSubstring("Only one can be present"))
 		})
 
 		It("Test PolicyDefintion with spec.version and without revision name annotation", func() {

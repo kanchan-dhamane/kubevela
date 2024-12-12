@@ -327,7 +327,7 @@ var _ = Describe("Test ComponentDefinition validating handler", func() {
 			}
 			resp := handler.Handle(context.TODO(), req)
 			Expect(resp.Allowed).Should(BeFalse())
-			Expect(string(resp.Result.Reason)).Should(ContainSubstring("Only one should be present"))
+			Expect(string(resp.Result.Reason)).Should(ContainSubstring("Only one can be present"))
 		})
 
 		It("Test ComponentDefintion with spec.version and without revision name annotation", func() {

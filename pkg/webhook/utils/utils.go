@@ -86,7 +86,7 @@ func checkError(err error) error {
 	return nil
 }
 
-func ValidSemanticVersion(version string) error {
+func ValidateSemanticVersion(version string) error {
 	if version != "" {
 		versionParts := strings.Split(version, ".")
 		if len(versionParts) != 3 {
@@ -102,9 +102,9 @@ func ValidSemanticVersion(version string) error {
 	return nil
 }
 
-func ValidateMultipleDefinitionVersionPresent(version, revisionName, objectType string) error {
+func ValidateMultipleDefVersionsNotPresent(version, revisionName, objectType string) error {
 	if version != "" && revisionName != "" {
-		return errors.New(fmt.Sprintf("%s has both spec.version and revision name annotation. Only one should be present", objectType))
+		return errors.New(fmt.Sprintf("%s has both spec.version and revision name annotation. Only one can be present", objectType))
 	}
 	return nil
 }

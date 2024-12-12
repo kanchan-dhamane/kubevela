@@ -159,7 +159,7 @@ var _ = Describe("Test workflowstepdefinition validating handler", func() {
 			}
 			resp := handler.Handle(context.TODO(), req)
 			Expect(resp.Allowed).Should(BeFalse())
-			Expect(string(resp.Result.Reason)).Should(ContainSubstring("Only one should be present"))
+			Expect(string(resp.Result.Reason)).Should(ContainSubstring("Only one can be present"))
 		})
 
 		It("Test workflowstepdefinition without spec.version and with revision name annotation", func() {

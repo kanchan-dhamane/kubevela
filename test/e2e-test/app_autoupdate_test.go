@@ -1,3 +1,19 @@
+/*
+Copyright 2024 The KubeVela Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package controllers_test
 
 import (
@@ -307,7 +323,7 @@ var _ = Describe("Application AutoUpdate", func() {
 			Expect(len(pods.Items)).To(BeEquivalentTo(4))
 		})
 
-		It("When new trait version is created after app creation, app should use new version during reconsilation", func() {
+		It("When new trait version is created after app creation, app should use new version during reconcilliation", func() {
 			By("Create scaler-trait with 1.4.5 version and 4 replica")
 			traitVersion := "1.4.5"
 			traitType := "scaler-trait"
@@ -330,7 +346,7 @@ var _ = Describe("Application AutoUpdate", func() {
 			Expect(k8sClient.List(ctx, pods, opts...)).To(BeNil())
 			Expect(len(pods.Items)).To(BeEquivalentTo(4))
 
-			By("Create scaler-trait with 1.5.0 version and 2 replicas")
+			By("Create scaler-trait with 1.4.8 version and 2 replicas")
 			updatedTrait := new(v1beta1.TraitDefinition)
 			updatedTraitVersion := "1.4.8"
 			Eventually(func() error {

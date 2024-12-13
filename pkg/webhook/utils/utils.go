@@ -86,6 +86,8 @@ func checkError(err error) error {
 	return nil
 }
 
+// ValidateSemanticVersion validates if a Definition's version includes all of
+// major,minor & patch version values.
 func ValidateSemanticVersion(version string) error {
 	if version != "" {
 		versionParts := strings.Split(version, ".")
@@ -102,9 +104,10 @@ func ValidateSemanticVersion(version string) error {
 	return nil
 }
 
+// ValidateMultipleDefVersionsNotPresent validates that both Name Annotation Revision and Spec.Version are not present
 func ValidateMultipleDefVersionsNotPresent(version, revisionName, objectType string) error {
 	if version != "" && revisionName != "" {
-		return errors.New(fmt.Sprintf("%s has both spec.version and revision name annotation. Only one can be present", objectType))
+		return fmt.Errorf("%s has both spec.version and revision name annotation. Only one can be present", objectType)
 	}
 	return nil
 }

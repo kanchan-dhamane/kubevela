@@ -58,6 +58,7 @@ func (h *ValidatingHandler) InjectClient(c client.Client) error {
 
 var _ admission.Handler = &ValidatingHandler{}
 
+// Handle validate ComponentDefinition Spec here
 func (h *ValidatingHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
 	obj := &v1beta1.ComponentDefinition{}
 	if req.Resource.String() != componentDefGVR.String() {

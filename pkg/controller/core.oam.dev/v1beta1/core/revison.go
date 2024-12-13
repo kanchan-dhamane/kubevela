@@ -45,20 +45,20 @@ import (
 // GenerateDefinitionRevision will generate a definition revision the generated revision
 // will be compare with the last revision to see if there's any difference.
 func GenerateDefinitionRevision(ctx context.Context, cli client.Client, def runtime.Object) (*v1beta1.DefinitionRevision, bool, error) {
-	isNamedRev, defRevNamespacedName, err := isSpecVersionRevision(def)
-	if isNamedRev {
-		return generateNamedDefinitionRevision(ctx, cli, def, defRevNamespacedName)
-	}
+	isSpecVersion, defRevNamespacedName, err := isSpecVersionRevision(def)
 	if err != nil {
 		return nil, false, err
+	}
+	if isSpecVersion {
+		return generateDefinitionRevision(ctx, cli, def, defRevNamespacedName)
 	}
 
-	isNamedRev, defRevNamespacedName, err = isNameAnnotationRevision(def)
+	isNamedRev, defRevNamespacedName, err := isNameAnnotationRevision(def)
 	if err != nil {
 		return nil, false, err
 	}
 	if isNamedRev {
-		return generateNamedDefinitionRevision(ctx, cli, def, defRevNamespacedName)
+		return generateDefinitionRevision(ctx, cli, def, defRevNamespacedName)
 	}
 
 	defRev, lastRevision, err := GatherRevisionInfo(def)
@@ -125,14 +125,14 @@ func isSpecVersionRevision(def runtime.Object) (bool, types.NamespacedName, erro
 	}
 	semVersion, err := semver.NewVersion(definitionVersion)
 	if err != nil {
-		return true, types.NamespacedName{}, err
+		return false, types.NamespacedName{}, err
 	}
 
 	definitionRevisionName := ConstructDefinitionRevisionName(definitionName, semVersion.String())
 	return true, types.NamespacedName{Name: definitionRevisionName, Namespace: definitionNamespace}, nil
 }
 
-func generateNamedDefinitionRevision(ctx context.Context, cli client.Client, def runtime.Object, defRevNamespacedName types.NamespacedName) (*v1beta1.DefinitionRevision, bool, error) {
+func generateDefinitionRevision(ctx context.Context, cli client.Client, def runtime.Object, defRevNamespacedName types.NamespacedName) (*v1beta1.DefinitionRevision, bool, error) {
 	oldDefRev := new(v1beta1.DefinitionRevision)
 
 	// definitionRevision is immutable, if the requested definitionRevision already exists, return directly.
@@ -278,7 +278,7 @@ func DeepEqualDefRevision(old, new *v1beta1.DefinitionRevision) bool {
 
 func getDefNextRevision(definitionRevision *v1beta1.DefinitionRevision, lastRevision *common.Revision) (string, int64) {
 	var nextRevision int64 = 1
-	var nextVersion, definitionRevisionName string
+	var definitionRevisionName string
 	if lastRevision != nil {
 		nextRevision = lastRevision.Revision + 1
 	}
@@ -286,22 +286,15 @@ func getDefNextRevision(definitionRevision *v1beta1.DefinitionRevision, lastRevi
 	switch definitionRevision.Spec.DefinitionType {
 	case common.ComponentType:
 		name = definitionRevision.Spec.ComponentDefinition.Name
-		nextVersion = definitionRevision.Spec.ComponentDefinition.Spec.Version
 	case common.TraitType:
 		name = definitionRevision.Spec.TraitDefinition.Name
-		nextVersion = definitionRevision.Spec.TraitDefinition.Spec.Version
 	case common.PolicyType:
 		name = definitionRevision.Spec.PolicyDefinition.Name
-		nextVersion = definitionRevision.Spec.PolicyDefinition.Spec.Version
 	case common.WorkflowStepType:
 		name = definitionRevision.Spec.WorkflowStepDefinition.Name
-		nextVersion = definitionRevision.Spec.WorkflowStepDefinition.Spec.Version
 	}
-	if nextVersion == "" {
-		definitionRevisionName = strings.Join([]string{name, fmt.Sprintf("v%v", nextRevision)}, "-")
-	} else {
-		definitionRevisionName = strings.Join([]string{name, fmt.Sprintf("v%s", nextVersion)}, "-")
-	}
+
+	definitionRevisionName = strings.Join([]string{name, fmt.Sprintf("v%v", nextRevision)}, "-")
 
 	return definitionRevisionName, nextRevision
 }

@@ -58,7 +58,8 @@ func (h *ValidatingHandler) InjectDecoder(d *admission.Decoder) error {
 	return nil
 }
 
-func (h *ValidatingHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
+// Handle validate WorkflowStepDefinition Spec here
+func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) admission.Response {
 	obj := &v1beta1.WorkflowStepDefinition{}
 	if req.Resource.String() != workflowStepDefGVR.String() {
 		return admission.Errored(http.StatusBadRequest, fmt.Errorf("expect resource to be %s", workflowStepDefGVR))
@@ -86,6 +87,7 @@ func (h *ValidatingHandler) Handle(ctx context.Context, req admission.Request) a
 	return admission.ValidationResponse(true, "")
 }
 
+// RegisterValidatingHandler will register WorkflowStepDefinition validation to webhook
 func RegisterValidatingHandler(mgr manager.Manager) {
 	server := mgr.GetWebhookServer()
 	server.Register("/validating-core-oam-dev-v1beta1-workflowstepdefinitions", &webhook.Admission{Handler: &ValidatingHandler{}})

@@ -502,6 +502,8 @@ var _ = Describe("Application AutoUpdate", func() {
 
 })
 
+// TODO Add test cases for policydefinition and worflowstepdefinition
+
 func updateAppComponent(appTemplate v1beta1.Application, appName, namespace, typeName, componentName, componentVersion string) *v1beta1.Application {
 	app := appTemplate.DeepCopy()
 	app.ObjectMeta.Name = appName

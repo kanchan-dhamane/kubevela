@@ -281,7 +281,7 @@ func fetchDefinitionRevision(ctx context.Context, cli client.Reader, definitionN
 	defName := strings.Split(definitionName, "@")[0]
 	autoUpdate, ok := annotations[oam.AnnotationAutoUpdate]
 	if ok && autoUpdate == "true" {
-		latestRevisionName, err := getLatestDefinitionRevisionName(ctx, cli.(client.Client), defName, defRevName, definitionType)
+		latestRevisionName, err := GetLatestDefinitionRevisionName(ctx, cli.(client.Client), defName, defRevName, definitionType)
 		if err != nil {
 			return false, nil, err
 		}
@@ -295,8 +295,8 @@ func fetchDefinitionRevision(ctx context.Context, cli client.Reader, definitionN
 	return false, defRev, nil
 }
 
-func getLatestDefinitionRevisionName(ctx context.Context, cli client.Client, definitionName, revisionName string, definitionType common.DefinitionType) (string, error) {
-
+// GetLatestDefinitionRevisionName returns the latest definition revision name in specified version range
+func GetLatestDefinitionRevisionName(ctx context.Context, cli client.Client, definitionName, revisionName string, definitionType common.DefinitionType) (string, error) {
 	for _, ns := range []string{GetDefinitionNamespaceWithCtx(ctx), oam.SystemDefinitionNamespace} {
 
 		revisionListForDefinition, err := fetchAllRevisionsForDefinitionName(ctx, cli, ns, definitionName, definitionType)
